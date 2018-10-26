@@ -36,7 +36,11 @@ class PlayerPadControls extends Component {
               }}
             />
             <ControlButton
-              iconClass="player-controls__icon-play"
+              iconClass={
+                this.props.paused
+                  ? "player-controls__icon-play"
+                  : "player-controls__icon-pause"
+              }
               onClick={() => {
                 this.performAction();
               }}
