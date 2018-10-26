@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import "./player.css";
+import PlayerPadControls from "./playerPadControls";
 
 class Player extends Component {
   state = {};
@@ -32,21 +33,7 @@ class Player extends Component {
             </div>
           </div>
         </div>
-        <div className="player__pad-wrapper">
-          <div className="player__pad">
-            <div className="player-controls">
-              <div className="player-control__button">
-                <div className="player-controls__icon-prev player-controls__icon" />
-              </div>
-              <div className="player-control__button ">
-                <div className="player-controls__icon-play player-controls__icon" />
-              </div>
-              <div className="player-control__button ">
-                <div className="player-controls__icon-next player-controls__icon" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <PlayerPadControls />
       </div>
     );
   }
