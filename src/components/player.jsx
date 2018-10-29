@@ -12,6 +12,7 @@ class Player extends Component {
     paused: true,
     audios: [],
     currentSong: null,
+    duration: 0,
     currentSongInfo: {}
   };
 
@@ -35,15 +36,12 @@ class Player extends Component {
             title: track.name
           };
         });
-        console.log(audios);
         self.setState({ audios: new TrackIterator(audios) });
       })
-      .then(error => {
-        console.log(error);
-      })
+      .then(error => console.log(error))
       .then(() => {
         self.updateSongInfo();
-        this.addEventListenners();
+        self.addEventListenners();
       });
   };
 
@@ -55,24 +53,34 @@ class Player extends Component {
 
   addEventListenners = () => {
     var self = this;
-    this.state.audios.current().addEventListener("timeupdate", () => {
+    this.state.audios.current().ontimeupdate = () => {
       var song = self.state.audios.current();
       var currentSongInfo = self.state.currentSongInfo;
       currentSongInfo.currentTime = song.currentTime;
+      currentSongInfo.duration = song.duration;
       self.setState({ currentSongInfo });
-    });
+    };
+    this.state.audios.current().onended = () => {
+      self.playNext();
+    };
   };
 
   playPrevious = () => {
     this.state.audios.current().pause();
-    this.state.audios.prev().play();
+    this.state.audios.prev();
+    if (!this.state.paused) {
+      this.state.audios.current().play();
+    }
     this.updateSongInfo();
     this.addEventListenners();
   };
 
   playNext = () => {
     this.state.audios.current().pause();
-    this.state.audios.next().play();
+    this.state.audios.next();
+    if (!this.state.paused) {
+      this.state.audios.current().play();
+    }
     this.updateSongInfo();
     this.addEventListenners();
   };
@@ -91,6 +99,10 @@ class Player extends Component {
     this.state.audios.current().play();
   };
 
+  onSliderInputValueChanged = value => {
+    this.state.audios.current().currentTime = value;
+  };
+
   render() {
     return (
       <div className="player">
@@ -98,6 +110,7 @@ class Player extends Component {
         <PlayerSlidingPad
           paused={this.state.paused}
           songInfo={this.state.currentSongInfo}
+          onSliderInputValueChanged={this.onSliderInputValueChanged}
         />
         <PlayerDisk paused={this.state.paused} />
         <PlayerPadControls

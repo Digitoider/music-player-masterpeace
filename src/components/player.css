@@ -93,6 +93,7 @@
   width: inherit;
   height: inherit;
   border-radius: 50%;
+  user-select: none;
   border: 5px solid #fff;
 }
 .player__disc-element-wrapper {
@@ -231,7 +232,7 @@
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-54px);
+    transform: translateY(-63px);
     opacity: 1;
   }
 }

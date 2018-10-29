@@ -3,16 +3,19 @@ import React, { Component } from "react";
 class PlayerSlidingPad extends Component {
   state = {};
 
-  duration = () => {
-    Math.round(this.props.songInfo.duration);
+  formatDuration = () => {
+    return Math.round(this.props.songInfo.duration);
   };
 
-  currentTime = () => {
-    Math.round(this.props.songInfo.currentTime);
+  formatCurrentTime = () => {
+    return Math.round(this.props.songInfo.currentTime);
+  };
+
+  bubbleUpSliderInputValueChangeEvent = e => {
+    this.props.onSliderInputValueChanged(e.target.value);
   };
 
   render() {
-    console.log(this.props.songInfo.currentTime);
     return (
       <div className="player__sliding-pad-wrapper">
         <div
@@ -30,8 +33,9 @@ class PlayerSlidingPad extends Component {
             <input
               type="range"
               min="0"
-              max={`${this.duration()}`}
-              value={`${this.currentTime()}`}
+              max={`${this.formatDuration()}`}
+              value={`${this.formatCurrentTime()}`}
+              onChange={e => this.bubbleUpSliderInputValueChangeEvent(e)}
             />
           </div>
         </div>
