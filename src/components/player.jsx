@@ -4,107 +4,29 @@ import PlayerSlidingPad from "./playerSlidingPad";
 import PlayerDisk from "./playerDisk";
 import PlayerPadControls from "./playerPadControls";
 import axios from "axios";
-
-class TrackArray {
-  audios = [];
-  currentSong = null;
-  iterator = null;
-
-  constructor(audios) {
-    this.audios = audios;
-    this.initialize();
-  }
-
-  current() {
-    return this.currentSong;
-  }
-  info() {
-    if (this.isEmpty()) {
-      return;
-    }
-    return this.audios[this.iterator];
-  }
-
-  initialize() {
-    if (this.audios.length > 0) {
-      this.iterator = 0;
-      this.instantiateAudio();
-    }
-  }
-
-  instantiateAudio() {
-    var song = this.audios[this.iterator];
-    this.currentSong = new Audio(song.url);
-    return this.currentSong;
-  }
-
-  isFirstSong() {
-    return this.iterator === 0;
-  }
-
-  isLastSong() {
-    return this.audios.length - 1 === this.iterator;
-  }
-
-  isEmpty() {
-    return this.audios.length === 0;
-  }
-
-  rewind() {
-    if (this.isEmpty()) {
-      return;
-    }
-    this.iterator = 0;
-    this.currentSong = new Audio(this.audios[this.iterator]);
-    return this.currentSong;
-  }
-
-  rewindToEnd() {
-    if (this.isEmpty()) {
-      return;
-    }
-
-    this.iterator = this.audios.length - 1;
-    this.currentSong = new Audio(this.audios[this.iterator]);
-    return this.currentSong;
-  }
-
-  next() {
-    if (this.isLastSong()) {
-      return this.rewind();
-    } else {
-      this.iterator++;
-      return this.instantiateAudio();
-    }
-  }
-
-  prev() {
-    if (this.isFirstSong()) {
-      return this.rewindToEnd();
-    } else {
-      this.iterator--;
-      return this.instantiateAudio();
-    }
-  }
-}
+import TrackIterator from "./../units/trackIterator";
+import SongApiConfig from "./../configs/songApiConfig";
 
 class Player extends Component {
   state = {
     paused: true,
     audios: [],
     currentSong: null,
-    api: {
-      key: "YTkxZTRhNzAtODdlNy00ZjMzLTg0MWItOTc0NmZmNjU4Yzk4",
-      uri: "http://api.napster.com/v2.2"
-    }
+    currentSongInfo: {}
   };
 
+  constructor() {
+    super();
+    this.state.api_config = new SongApiConfig();
+  }
+
   componentDidMount = () => {
-    console.log("componentDidMount");
-    var api = this.state.api;
+    var api_config = this.state.api_config;
     var self = this;
     axios
-      .get(api.uri + "/tracks/top", { params: { apikey: api.key, limit: 5 } })
+      .get(api_config.top_tracks_url(), {
+        params: { apikey: api_config.key, limit: 5 }
+      })
       .then(response => {
         var audios = response.data.tracks.map(track => {
           return {
@@ -114,48 +36,69 @@ class Player extends Component {
           };
         });
         console.log(audios);
-        self.setState({ audios: new TrackArray(audios) });
+        self.setState({ audios: new TrackIterator(audios) });
       })
       .then(error => {
         console.log(error);
+      })
+      .then(() => {
+        self.updateSongInfo();
+        this.addEventListenners();
       });
+  };
+
+  updateSongInfo = () => {
+    var info = this.state.audios.currentSongInfo();
+    info.duration = this.state.audios.current().duration;
+    this.setState({ currentSongInfo: info });
+  };
+
+  addEventListenners = () => {
+    var self = this;
+    this.state.audios.current().addEventListener("timeupdate", () => {
+      var song = self.state.audios.current();
+      var currentSongInfo = self.state.currentSongInfo;
+      currentSongInfo.currentTime = song.currentTime;
+      self.setState({ currentSongInfo });
+    });
   };
 
   playPrevious = () => {
     this.state.audios.current().pause();
     this.state.audios.prev().play();
-    console.log("Now it plays previous song");
+    this.updateSongInfo();
+    this.addEventListenners();
   };
 
   playNext = () => {
     this.state.audios.current().pause();
     this.state.audios.next().play();
-    console.log("Now we switch to the next song");
+    this.updateSongInfo();
+    this.addEventListenners();
   };
 
   performPause = () => {
     this.setState({
       paused: true
     });
-    // this.state.currentSong.pause();
     this.state.audios.current().pause();
-    // console.log("Song is paused");
   };
 
   performPlay = () => {
     this.setState({
       paused: false
     });
-    // this.state.currentSong.play();
     this.state.audios.current().play();
-    // console.log("Song is playing");
   };
 
   render() {
     return (
       <div className="player">
         <audio src="" />
-        <PlayerSlidingPad paused={this.state.paused} />
+        <PlayerSlidingPad
+          paused={this.state.paused}
+          songInfo={this.state.currentSongInfo}
+        />
         <PlayerDisk paused={this.state.paused} />
         <PlayerPadControls
           paused={this.state.paused}
