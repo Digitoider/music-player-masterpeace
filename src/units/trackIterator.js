@@ -11,6 +11,7 @@ class TrackIterator {
   current() {
     return this.currentSong;
   }
+
   currentSongInfo() {
     if (this.isEmpty()) {
       return;
@@ -23,6 +24,14 @@ class TrackIterator {
       this.iterator = 0;
       this.instantiateAudio();
     }
+  }
+
+  getAllAudioInfos() {
+    var self = this;
+    return this.audios.map((audio, index) => {
+      audio.selected = index === self.iterator;
+      // audio.paused=
+    });
   }
 
   instantiateAudio() {
